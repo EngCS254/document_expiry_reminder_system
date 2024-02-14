@@ -11,7 +11,7 @@ from email.mime.multipart import MIMEMultipart
 
 # Define sender_email and sender_password globally
 sender_email = ""
-sender_password = ""
+sender_password = "" 
 
 # Function to initialize the database
 def initialize_database():
