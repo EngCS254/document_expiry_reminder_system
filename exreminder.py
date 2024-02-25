@@ -11,7 +11,7 @@ from email.mime.multipart import MIMEMultipart
 
 # Define sender_email and sender_password globally
 sender_email = ""
-sender_password = "" 
+sender_password = ""
 
 # Function to initialize the database
 def initialize_database():
@@ -102,6 +102,37 @@ def extract_images_from_pdf(file_path):
             images.append(image_bytes)
     return images
 
+# Function to remind about tax filings on specific days of the month
+def check_tax_filing_reminders():
+    # Get today's date
+    today = datetime.today()
+    # Check if today is the day for VAT filing
+    if today.day == 15:
+        send_tax_filing_reminder("VAT")
+    # Check if today is the day for Withholding tax filing
+    if today.day == 20:
+        send_tax_filing_reminder("Withholding Tax")
+
+# Function to send tax filing reminders
+def send_tax_filing_reminder(tax_type):
+    global sender_email, sender_password
+    # Example message, customize as needed
+    subject = f"{tax_type} Filing Reminder"
+    body = f"Dear User,\n\nThis is a reminder to file your {tax_type} for the current month.\n\nRegards,\nYour App"
+    # Send email
+    message = MIMEMultipart()
+    message['From'] = sender_email
+    message['To'] = sender_email  # Sending reminder to self, modify recipient as needed
+    message['Subject'] = subject
+    message.attach(MIMEText(body, 'plain'))
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(sender_email, sender_password)
+    text = message.as_string()
+    server.sendmail(sender_email, sender_email, text)
+    server.quit()
+
 def upload_page():
     st.title('Upload Document')
     name = st.text_input('Document Name')
@@ -156,15 +187,36 @@ def display_page():
             st.success('Expiry reminder emails sent successfully!')
             st.balloons()  # Display balloons animation when reminder emails are sent
 
+def tax_filing_page():
+    st.title('Tax Filings')
+    st.write('Add your tax filing reminders here.')
+    st.write('For example, you can remind yourself about VAT and Withholding tax filings.')
+
+    # Example code to add a VAT filing reminder
+    vat_due_date = st.date_input('VAT Due Date')
+    if st.button('Add VAT Filing Reminder'):
+        # Here you can add code to store the VAT filing reminder in your database
+        st.success('VAT filing reminder added successfully!')
+
+    # Example code to add a Withholding tax filing reminder
+    withholding_tax_due_date = st.date_input('Withholding Tax Due Date')
+    if st.button('Add Withholding Tax Filing Reminder'):
+        # Here you can add code to store the Withholding tax filing reminder in your database
+        st.success('Withholding tax filing reminder added successfully!')
+
 def main():
     initialize_database()  # Initialize the database schema
     st.sidebar.title('Navigation')
-    page = st.sidebar.radio("Go to", ('Upload Document', 'All Documents'))
+    page = st.sidebar.radio("Go to", ('Upload Document', 'All Documents', 'Tax Filings'))
 
     if page == 'Upload Document':
         upload_page()
     elif page == 'All Documents':
         display_page()
+    elif page == 'Tax Filings':
+        tax_filing_page()
+
+    check_tax_filing_reminders()  # Check for tax filing reminders when the app is run
 
 if __name__ == '__main__':
     main()
